@@ -5,12 +5,13 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
-
+from pinecone import Pinecone
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
-
 from config import answer_examples
+
+import os
 
 store = {}
 
@@ -24,6 +25,12 @@ def get_session_history(session_id: str) -> BaseChatMessageHistory:
 def get_retriever():
     embedding = OpenAIEmbeddings(model='text-embedding-3-small', dimensions=512)
     index_name = 'tax-markdown-index'
+    
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY"),
+        environment=os.environ.get("PINECONE_ENVIRONMENT")
+    )
+    
     database = PineconeVectorStore.from_existing_index(index_name=index_name, embedding=embedding)
     retriever = database.as_retriever(search_kwargs={'k': 4})
     return retriever
